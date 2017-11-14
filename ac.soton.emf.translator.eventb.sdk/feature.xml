@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="ac.soton.emf.translator.eventb.sdk"
+      label="%featureName"
+      version="0.0.1.qualifier"
+      provider-name="%featureVendor"
+      license-feature="org.rodinp.license"
+      license-feature-version="1.0.0.release">
+
+   <description>
+      %featureDescription
+   </description>
+
+   <copyright>
+      %featureCopyright
+   </copyright>
+
+   <url>
+      <update label="%updateSiteName" url="http://rodin-b-sharp.sourceforge.net/updates"/>
+   </url>
+
+   <includes
+         id="ac.soton.emf.translator.eventb.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="ac.soton.emf.translator.eventb.source.feature"
+         version="0.0.0"/>
+
+</feature>
