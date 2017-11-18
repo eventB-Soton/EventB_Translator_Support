@@ -26,7 +26,6 @@ import org.eventb.emf.core.AttributeType;
 import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
-import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedActionElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBNamedCommentedElement;
@@ -34,6 +33,7 @@ import org.eventb.emf.core.EventBNamedCommentedPredicateElement;
 import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.context.Context;
 import org.eventb.emf.core.machine.Event;
+import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.persistence.AttributeIdentifiers;
 
 import ac.soton.emf.translator.TranslationDescriptor;
@@ -93,18 +93,27 @@ public class EventBImportAdapter implements IAdapter {
 	 * returns a URI for..
 	 *  a Rodin machine (.bum) or..
 	 *  a Rodin context (.buc) or..
-	 *  , for the composition machine, an EMF serialisation of the machine (.xmb)
+	 *  
 	 * 
 	 */
 	@Override
 	public URI getComponentURI(TranslationDescriptor translationDescriptor, EObject rootElement) {
-		if (translationDescriptor.remove == false && 
-				translationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
+		if (translationDescriptor.remove == true) return null;
+		String projectName = EcoreUtil.getURI(rootElement).segment(1);
+		URI projectUri = URI.createPlatformResourceURI(projectName, true);
+		EventBNamedCommentedComponentElement component = null;
+		if (translationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
 				translationDescriptor.value instanceof EventBNamedCommentedComponentElement){
-			String projectName = EcoreUtil.getURI(rootElement).segment(1);
-			URI projectUri = URI.createPlatformResourceURI(projectName, true);
-			String fileName = ((EventBNamed)translationDescriptor.value).getName();
-			String ext = translationDescriptor.value instanceof Context? "buc" :  "bum";
+			component = (EventBNamedCommentedComponentElement) translationDescriptor.value;
+			
+		}else if (translationDescriptor.parent instanceof EventBElement){
+			component = (EventBNamedCommentedComponentElement) ((EventBElement)translationDescriptor.parent).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+		}
+		if (component != null){
+			String fileName = component.getName();
+			String ext = 	component instanceof Context? "buc" :  
+							component instanceof Machine? "bum" :
+								"";
 			URI fileUri = projectUri.appendSegment(fileName).appendFileExtension(ext); //$NON-NLS-1$
 			return fileUri;
 		}
