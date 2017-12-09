@@ -88,13 +88,26 @@ public class EventBImportAdapter implements IAdapter {
 		}
 	}
 
+	/**
+	 * returns true if feature is project components and value is a EventBNamedCommentdComponentElement
+	 * 
+	 */
+	@Override
+	public boolean isRoot(TranslationDescriptor translationDescriptor) {
+		if (translationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
+				translationDescriptor.value instanceof EventBNamedCommentedComponentElement){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	
 	/**
 	 * returns a URI for..
 	 *  a Rodin machine (.bum) or..
 	 *  a Rodin context (.buc) or..
 	 *  
-	 * 
 	 */
 	@Override
 	public URI getComponentURI(TranslationDescriptor translationDescriptor, EObject rootElement) {
@@ -318,7 +331,7 @@ public class EventBImportAdapter implements IAdapter {
 				Integer v_pri = getPriority(v);
 				
 				//priority order = highest 1..10,0,-1..-10
-				if ((v_pri>0 && (pri<=0 || pri > v_pri )) || (v_pri < 1 && pri < v_pri ) || (v_pri==pri && v_xod<xod)){
+				if ((v_pri>0 && (pri<=0 || pri > v_pri )) || (v_pri < 1 && pri < v_pri ) || (v_pri==pri && v_xod<=xod)){
 					pos = i+1;
 				};
 				
