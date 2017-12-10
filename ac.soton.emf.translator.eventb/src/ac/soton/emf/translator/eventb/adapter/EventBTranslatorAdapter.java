@@ -48,7 +48,7 @@ import ac.soton.emf.translator.configuration.IAdapter;
  *
  */
 
-public class EventBImportAdapter implements IAdapter {
+public class EventBTranslatorAdapter implements IAdapter {
 
 	/**
 	 * used to store the order position of extensions
@@ -68,7 +68,15 @@ public class EventBImportAdapter implements IAdapter {
 		return v_xod;
 	}
 	
-	
+	/**
+	 * A constructor that calls the initialiseAdapter
+	 * 
+	 * @param sourceElement
+	 */
+	public EventBTranslatorAdapter(Object sourceElement){
+		super();
+		initialiseAdapter(sourceElement);
+	}
 	
 	/**
 	 * 
