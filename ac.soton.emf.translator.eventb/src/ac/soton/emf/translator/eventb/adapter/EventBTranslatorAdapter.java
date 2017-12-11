@@ -67,17 +67,7 @@ public class EventBTranslatorAdapter implements IAdapter {
 		if (v_xod==null) v_xod = extensionOrder.size(); // not an extension => user entered stuff comes last
 		return v_xod;
 	}
-	
-	/**
-	 * A constructor that calls the initialiseAdapter
-	 * 
-	 * @param sourceElement
-	 */
-	public EventBTranslatorAdapter(Object sourceElement){
-		super();
-		initialiseAdapter(sourceElement);
-	}
-	
+
 	/**
 	 * 
 	 */
