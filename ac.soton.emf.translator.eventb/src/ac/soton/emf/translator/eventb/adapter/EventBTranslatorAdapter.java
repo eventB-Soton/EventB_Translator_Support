@@ -10,16 +10,26 @@
  *******************************************************************************/
 package ac.soton.emf.translator.eventb.adapter;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.Attribute;
 import org.eventb.emf.core.AttributeType;
@@ -136,6 +146,45 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 		return null;
 	}
 	
+	/**
+	 * @see ac.soton.emf.translator.configuration.DefaultAdapter#getAffectedResources(org.eclipse.emf.transaction.TransactionalEditingDomain, org.eclipse.emf.ecore.EObject)
+	 * 
+	 * This implementation returns all EMF resources in the same project as the source element that are EventB Machines or Contexts 
+	 * 
+	 * @param editingDomain
+	 * @param sourceElement
+	 * @return list of affected Resources
+	 */
+	public Collection<Resource> getAffectedResources(TransactionalEditingDomain editingDomain, EObject sourceElement) throws IOException {
+		List<Resource> affectedResources = new ArrayList<Resource>();
+		String projectName = EcoreUtil.getURI(sourceElement).segment(1);
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+		if (project.exists()){
+			try {
+				IResource[] members = project.members();
+				ResourceSet resourceSet = editingDomain.getResourceSet();
+				for (IResource res : members){
+					final URI fileURI = URI.createPlatformResourceURI(projectName + "/" + res.getName(), true);
+					if ("bum".equals(fileURI.fileExtension()) || "buc".equals(fileURI.fileExtension())){ 
+						Resource resource = resourceSet.getResource(fileURI, false);
+						if (resource != null) {
+							if (!resource.isLoaded()) {
+								resource.load(Collections.emptyMap());
+							}
+							if (resource.isLoaded()) {
+								affectedResources.add(resource);
+							} 
+						}
+					}
+				}
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		return affectedResources;
+	}
+	
+
 	/* (non-Javadoc)
 	 * @see ac.soton.emf.translator.IAdapter#inputFilter(java.lang.Object)
 	 */
