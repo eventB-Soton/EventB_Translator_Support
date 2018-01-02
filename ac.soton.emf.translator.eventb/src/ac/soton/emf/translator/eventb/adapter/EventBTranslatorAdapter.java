@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  Copyright (c) 2016 University of Southampton.
+ *  Copyright (c) 2016-2017 University of Southampton.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -37,6 +37,7 @@ import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.persistence.AttributeIdentifiers;
 
 import ac.soton.emf.translator.TranslationDescriptor;
+import ac.soton.emf.translator.configuration.DefaultAdapter;
 import ac.soton.emf.translator.configuration.IAdapter;
 
 
@@ -48,7 +49,7 @@ import ac.soton.emf.translator.configuration.IAdapter;
  *
  */
 
-public class EventBTranslatorAdapter implements IAdapter {
+public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter {
 
 	/**
 	 * used to store the order position of extensions
@@ -61,11 +62,15 @@ public class EventBTranslatorAdapter implements IAdapter {
 	 * @return
 	 */
 	protected Integer getExtensionPosition(Object object) {
-		Attribute generatorAttribute = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
-		String generatorID = (String) (generatorAttribute==null? null : generatorAttribute.getValue());
-		Integer v_xod = extensionOrder.get(generatorID);
-		if (v_xod==null) v_xod = extensionOrder.size(); // not an extension => user entered stuff comes last
-		return v_xod;
+		if (object instanceof EventBElement){
+			Attribute generatorAttribute = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
+			String generatorID = (String) (generatorAttribute==null? null : generatorAttribute.getValue());
+			Integer v_xod = extensionOrder.get(generatorID);
+			if (v_xod==null) v_xod = extensionOrder.size(); // not an extension => user entered stuff comes last
+			return v_xod;
+		}else{
+			return extensionOrder.size();
+		}
 	}
 
 	/**
@@ -279,10 +284,14 @@ public class EventBTranslatorAdapter implements IAdapter {
 	 * @return
 	 */
 	protected int getPriority(Object object) {
-		Attribute priorityAttribute= ((EventBElement)object).getAttributes().get(AttributeIdentifiers.PRIORITY_KEY);
-		Integer pri = (Integer) (priorityAttribute==null? null : priorityAttribute.getValue());
-		if (pri==null) pri = 0; // no priority => user stuff at priority 0
-		return pri;
+		if (object instanceof EventBObject){
+			Attribute priorityAttribute= ((EventBElement)object).getAttributes().get(AttributeIdentifiers.PRIORITY_KEY);
+			Integer pri = (Integer) (priorityAttribute==null? null : priorityAttribute.getValue());
+			if (pri==null) pri = 0; // no priority => user stuff at priority 0
+			return pri;
+		}else{
+			return 0;
+		}
 	}
 	
 	/**
@@ -313,29 +322,33 @@ public class EventBTranslatorAdapter implements IAdapter {
 	 */
 	@Override
 	public int getPos(List<?> list, Object object) {
-		//calculate the correct index - i.e. after any higher priority elements and
-		//after stuff translated by earlier extensions which have the same priority
-		int pri = getPriority(object);
-		int pos = 0;
-		int xod = getExtensionPosition(object);
-		for (int i=0; i<list.size(); i++){
-			Object v = list.get(i);
-			if(v instanceof EventBElement){
-				
-				//calculate extension order od of this value
-				Integer v_xod = getExtensionPosition(v);
-				
-				//calculate priority order of this value
-				Integer v_pri = getPriority(v);
-				
-				//priority order = highest 1..10,0,-1..-10
-				if ((v_pri>0 && (pri<=0 || pri > v_pri )) || (v_pri < 1 && pri < v_pri ) || (v_pri==pri && v_xod<=xod)){
-					pos = i+1;
-				};
-				
+		if(object instanceof EventBElement){
+			//calculate the correct index - i.e. after any higher priority elements and
+			//after stuff translated by earlier extensions which have the same priority
+			int pri = getPriority(object);
+			int pos = 0;
+			int xod = getExtensionPosition(object);
+			for (int i=0; i<list.size(); i++){
+				Object v = list.get(i);
+				if(v instanceof EventBElement){
+					
+					//calculate extension order od of this value
+					Integer v_xod = getExtensionPosition(v);
+					
+					//calculate priority order of this value
+					Integer v_pri = getPriority(v);
+					
+					//priority order = highest 1..10,0,-1..-10
+					if ((v_pri>0 && (pri<=0 || pri > v_pri )) || (v_pri < 1 && pri < v_pri ) || (v_pri==pri && v_xod<=xod)){
+						pos = i+1;
+					};
+					
+				}
 			}
+			return pos;
+		}else{
+			return list.size()-1;
 		}
-		return pos;
 	}
 
 
