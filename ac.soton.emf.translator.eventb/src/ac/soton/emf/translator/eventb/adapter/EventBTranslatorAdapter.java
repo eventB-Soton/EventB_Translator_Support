@@ -396,7 +396,7 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 			}
 			return pos;
 		}else{
-			return list.size()-1;
+			return list.size();
 		}
 	}
 
