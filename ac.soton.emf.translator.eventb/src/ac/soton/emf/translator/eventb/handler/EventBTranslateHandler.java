@@ -15,7 +15,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eventb.emf.persistence.EMFRodinDB;
 import org.eventb.emf.persistence.SaveResourcesCommand;
@@ -53,18 +52,16 @@ public class EventBTranslateHandler extends TranslateHandler {
 	 * Use the SaveResourcesCommand to persist emf resources
 	 * This must be done in a RodinCore runnable
 	 * 
-	 * @param editingDomain
 	 * @param monitor
 	 * @throws ExecutionException 
 	 */
 	@Override
-	protected void save(final TransactionalEditingDomain editingDomain, IProgressMonitor monitor) throws Exception {
+	protected IStatus save(IProgressMonitor monitor) throws Exception {
 		// save all resources that have been modified	
-		final SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
+		final SaveResourcesCommand saveCommand = new SaveResourcesCommand(getEditingDomain());
 		if (saveCommand.canExecute()){
 			RodinCore.run(new IWorkspaceRunnable() {
 				public void run(final IProgressMonitor monitor) throws CoreException {
-
 					try {
 						saveCommand.execute(monitor, null);
 					} catch (ExecutionException e) {
@@ -73,9 +70,10 @@ public class EventBTranslateHandler extends TranslateHandler {
 					}
 
 				}
-			}, getSchedulingRule(editingDomain.getResourceSet().getResources().toArray(new Resource[0])), monitor);
+			}, getSchedulingRule(getEditingDomain().getResourceSet().getResources().toArray(new Resource[0])), monitor);
 		}
 		monitor.done();
+        return Status.OK_STATUS;
 	}
 	
 	private ISchedulingRule getSchedulingRule(Resource[] resources) {
