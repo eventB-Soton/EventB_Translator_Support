@@ -18,6 +18,7 @@ import org.eventb.emf.core.machine.MachinePackage;
 
 import ac.soton.emf.translator.configuration.AbstractRule;
 import ac.soton.emf.translator.configuration.IRule;
+import ac.soton.emf.translator.eventb.internal.rules.TranslatorStorage;
 
 
 /**
