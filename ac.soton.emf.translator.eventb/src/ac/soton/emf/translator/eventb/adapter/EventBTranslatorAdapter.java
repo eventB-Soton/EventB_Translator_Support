@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  Copyright (c) 2016 University of Southampton.
+ *  Copyright (c) 2016-2017 University of Southampton.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -10,23 +10,32 @@
  *******************************************************************************/
 package ac.soton.emf.translator.eventb.adapter;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.Attribute;
 import org.eventb.emf.core.AttributeType;
 import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
-import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedActionElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBNamedCommentedElement;
@@ -34,9 +43,11 @@ import org.eventb.emf.core.EventBNamedCommentedPredicateElement;
 import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.context.Context;
 import org.eventb.emf.core.machine.Event;
+import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.persistence.AttributeIdentifiers;
 
 import ac.soton.emf.translator.TranslationDescriptor;
+import ac.soton.emf.translator.configuration.DefaultAdapter;
 import ac.soton.emf.translator.configuration.IAdapter;
 
 
@@ -48,7 +59,7 @@ import ac.soton.emf.translator.configuration.IAdapter;
  *
  */
 
-public class EventBImportAdapter implements IAdapter {
+public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter {
 
 	/**
 	 * used to store the order position of extensions
@@ -61,15 +72,17 @@ public class EventBImportAdapter implements IAdapter {
 	 * @return
 	 */
 	protected Integer getExtensionPosition(Object object) {
-		Attribute generatorAttribute = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
-		String generatorID = (String) (generatorAttribute==null? null : generatorAttribute.getValue());
-		Integer v_xod = extensionOrder.get(generatorID);
-		if (v_xod==null) v_xod = extensionOrder.size(); // not an extension => user entered stuff comes last
-		return v_xod;
+		if (object instanceof EventBElement){
+			Attribute generatorAttribute = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
+			String generatorID = (String) (generatorAttribute==null? null : generatorAttribute.getValue());
+			Integer v_xod = extensionOrder.get(generatorID);
+			if (v_xod==null) v_xod = extensionOrder.size(); // not an extension => user entered stuff comes last
+			return v_xod;
+		}else{
+			return extensionOrder.size();
+		}
 	}
-	
-	
-	
+
 	/**
 	 * 
 	 */
@@ -88,29 +101,90 @@ public class EventBImportAdapter implements IAdapter {
 		}
 	}
 
+	/**
+	 * returns true if feature is project components and value is a EventBNamedCommentdComponentElement
+	 * 
+	 */
+	@Override
+	public boolean isRoot(TranslationDescriptor translationDescriptor) {
+		if (translationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
+				translationDescriptor.value instanceof EventBNamedCommentedComponentElement){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	
 	/**
 	 * returns a URI for..
 	 *  a Rodin machine (.bum) or..
 	 *  a Rodin context (.buc) or..
-	 *  , for the composition machine, an EMF serialisation of the machine (.xmb)
-	 * 
+	 *  
 	 */
 	@Override
 	public URI getComponentURI(TranslationDescriptor translationDescriptor, EObject rootElement) {
-		if (translationDescriptor.remove == false && 
-				translationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
+		if (translationDescriptor.remove == true) return null;
+		String projectName = EcoreUtil.getURI(rootElement).segment(1);
+		URI projectUri = URI.createPlatformResourceURI(projectName, true);
+		EventBNamedCommentedComponentElement component = null;
+		if (translationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
 				translationDescriptor.value instanceof EventBNamedCommentedComponentElement){
-			String projectName = EcoreUtil.getURI(rootElement).segment(1);
-			URI projectUri = URI.createPlatformResourceURI(projectName, true);
-			String fileName = ((EventBNamed)translationDescriptor.value).getName();
-			String ext = translationDescriptor.value instanceof Context? "buc" :  "bum";
+			component = (EventBNamedCommentedComponentElement) translationDescriptor.value;
+			
+		}else if (translationDescriptor.parent instanceof EventBElement){
+			component = (EventBNamedCommentedComponentElement) ((EventBElement)translationDescriptor.parent).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+		}
+		if (component != null){
+			String fileName = component.getName();
+			String ext = 	component instanceof Context? "buc" :  
+							component instanceof Machine? "bum" :
+								"";
 			URI fileUri = projectUri.appendSegment(fileName).appendFileExtension(ext); //$NON-NLS-1$
 			return fileUri;
 		}
 		return null;
 	}
 	
+	/**
+	 * @see ac.soton.emf.translator.configuration.DefaultAdapter#getAffectedResources(org.eclipse.emf.transaction.TransactionalEditingDomain, org.eclipse.emf.ecore.EObject)
+	 * 
+	 * This implementation returns all EMF resources in the same project as the source element that are EventB Machines or Contexts 
+	 * 
+	 * @param editingDomain
+	 * @param sourceElement
+	 * @return list of affected Resources
+	 */
+	public Collection<Resource> getAffectedResources(TransactionalEditingDomain editingDomain, EObject sourceElement) throws IOException {
+		List<Resource> affectedResources = new ArrayList<Resource>();
+		String projectName = EcoreUtil.getURI(sourceElement).segment(1);
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+		if (project.exists()){
+			try {
+				IResource[] members = project.members();
+				ResourceSet resourceSet = editingDomain.getResourceSet();
+				for (IResource res : members){
+					final URI fileURI = URI.createPlatformResourceURI(projectName + "/" + res.getName(), true);
+					if ("bum".equals(fileURI.fileExtension()) || "buc".equals(fileURI.fileExtension())){ 
+						Resource resource = resourceSet.getResource(fileURI, false);
+						if (resource != null) {
+							if (!resource.isLoaded()) {
+								resource.load(Collections.emptyMap());
+							}
+							if (resource.isLoaded()) {
+								affectedResources.add(resource);
+							} 
+						}
+					}
+				}
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		return affectedResources;
+	}
+	
+
 	/* (non-Javadoc)
 	 * @see ac.soton.emf.translator.IAdapter#inputFilter(java.lang.Object)
 	 */
@@ -259,10 +333,14 @@ public class EventBImportAdapter implements IAdapter {
 	 * @return
 	 */
 	protected int getPriority(Object object) {
-		Attribute priorityAttribute= ((EventBElement)object).getAttributes().get(AttributeIdentifiers.PRIORITY_KEY);
-		Integer pri = (Integer) (priorityAttribute==null? null : priorityAttribute.getValue());
-		if (pri==null) pri = 0; // no priority => user stuff at priority 0
-		return pri;
+		if (object instanceof EventBObject){
+			Attribute priorityAttribute= ((EventBElement)object).getAttributes().get(AttributeIdentifiers.PRIORITY_KEY);
+			Integer pri = (Integer) (priorityAttribute==null? null : priorityAttribute.getValue());
+			if (pri==null) pri = 0; // no priority => user stuff at priority 0
+			return pri;
+		}else{
+			return 0;
+		}
 	}
 	
 	/**
@@ -293,29 +371,33 @@ public class EventBImportAdapter implements IAdapter {
 	 */
 	@Override
 	public int getPos(List<?> list, Object object) {
-		//calculate the correct index - i.e. after any higher priority elements and
-		//after stuff translated by earlier extensions which have the same priority
-		int pri = getPriority(object);
-		int pos = 0;
-		int xod = getExtensionPosition(object);
-		for (int i=0; i<list.size(); i++){
-			Object v = list.get(i);
-			if(v instanceof EventBElement){
-				
-				//calculate extension order od of this value
-				Integer v_xod = getExtensionPosition(v);
-				
-				//calculate priority order of this value
-				Integer v_pri = getPriority(v);
-				
-				//priority order = highest 1..10,0,-1..-10
-				if ((v_pri>0 && (pri<=0 || pri > v_pri )) || (v_pri < 1 && pri < v_pri ) || (v_pri==pri && v_xod<xod)){
-					pos = i+1;
-				};
-				
+		if(object instanceof EventBElement){
+			//calculate the correct index - i.e. after any higher priority elements and
+			//after stuff translated by earlier extensions which have the same priority
+			int pri = getPriority(object);
+			int pos = 0;
+			int xod = getExtensionPosition(object);
+			for (int i=0; i<list.size(); i++){
+				Object v = list.get(i);
+				if(v instanceof EventBElement){
+					
+					//calculate extension order od of this value
+					Integer v_xod = getExtensionPosition(v);
+					
+					//calculate priority order of this value
+					Integer v_pri = getPriority(v);
+					
+					//priority order = highest 1..10,0,-1..-10
+					if ((v_pri>0 && (pri<=0 || pri > v_pri )) || (v_pri < 1 && pri < v_pri ) || (v_pri==pri && v_xod<=xod)){
+						pos = i+1;
+					};
+					
+				}
 			}
+			return pos;
+		}else{
+			return list.size();
 		}
-		return pos;
 	}
 
 

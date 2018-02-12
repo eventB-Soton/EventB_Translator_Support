@@ -11,6 +11,10 @@ Require-Bundle: ac.soton.emf.translator;bundle-version="[3.0.0,4.0.0)",
  org.eventb.emf.persistence;bundle-version="[3.5.1,4.0.0)",
  org.eventb.emf.core;bundle-version="[5.0.0,6.0.0)",
  org.eclipse.core.commands;bundle-version="[3.8.1,4.0.0)",
- org.eclipse.core.runtime;bundle-version="[3.12.0,4.0.0)"
+ org.eclipse.core.runtime;bundle-version="[3.12.0,4.0.0)",
+ org.eclipse.emf.transaction;bundle-version="[1.9.0,2.0.0)",
+ org.eclipse.emf.workspace;bundle-version="[1.5.1,2.0.0)"
 Export-Package: ac.soton.emf.translator.eventb.adapter,
- ac.soton.emf.translator.eventb.handler
+ ac.soton.emf.translator.eventb.handler,
+ ac.soton.emf.translator.eventb.rules,
+ ac.soton.emf.translator.eventb.utils
