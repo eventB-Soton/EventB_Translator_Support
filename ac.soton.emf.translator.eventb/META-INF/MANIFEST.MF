@@ -18,3 +18,4 @@ Export-Package: ac.soton.emf.translator.eventb.adapter,
  ac.soton.emf.translator.eventb.handler,
  ac.soton.emf.translator.eventb.rules,
  ac.soton.emf.translator.eventb.utils
+Automatic-Module-Name: ac.soton.emf.translator.eventb
