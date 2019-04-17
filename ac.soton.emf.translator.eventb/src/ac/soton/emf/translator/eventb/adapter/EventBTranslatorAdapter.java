@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  Copyright (c) 2016-2017 University of Southampton.
+ *  Copyright (c) 2016-2019 University of Southampton.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -24,7 +24,9 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -49,6 +51,7 @@ import org.eventb.emf.persistence.AttributeIdentifiers;
 import ac.soton.emf.translator.TranslationDescriptor;
 import ac.soton.emf.translator.configuration.DefaultAdapter;
 import ac.soton.emf.translator.configuration.IAdapter;
+import ac.soton.emf.translator.eventb.utils.Utils;
 
 
 /**
@@ -85,20 +88,46 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 
 	/**
 	 * 
+	 * 
 	 */
 	@Override	
 	public void initialiseAdapter(Object sourceElement){
 		if (sourceElement instanceof EventBObject){
+			Object targetComponent = getTargetComponent(sourceElement); 
+			Utils.resetStorage(targetComponent);
 			//set up map of extensions ids and their positions
-			EventBObject component = ((EventBObject) sourceElement).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-			int i=0;
-			for (EObject ae : component.getAllContained(CorePackage.Literals.ABSTRACT_EXTENSION, true)){
-				if (ae !=null) {
-					String id = ((AbstractExtension)ae).getExtensionId();
-					extensionOrder.put(id, i++);
+			if (targetComponent instanceof EventBObject) {
+				int i=0;
+				for (EObject ae : ((EventBObject) targetComponent).getAllContained(CorePackage.Literals.ABSTRACT_EXTENSION, true)){
+					if (ae !=null) {
+						String id = ((AbstractExtension)ae).getExtensionId();
+						extensionOrder.put(id, i++);
+						EClass eclass = ae.eClass();
+						EList<EReference> refs = eclass.getEReferences();
+						for (EReference r : refs) {
+							Object rae = ae.eGet(r);
+							if (rae instanceof AbstractExtension) {
+								id = ((AbstractExtension)rae).getExtensionId();
+								extensionOrder.put(id, i++);
+							}
+						}
+					}
 				}
 			}
 		}
+	}
+
+	/**
+	 * This can be overridden to extend the method of obtaining the component used as the target for translation
+	 * This is called when the adapter is initialised in order to cache the target in the storage area
+	 * 
+	 * @since 0.1
+	 */
+	//TODO: should this be added to IAdapter?
+	protected Object getTargetComponent(Object sourceElement) {
+		return sourceElement instanceof EventBObject? 
+				((EventBObject)sourceElement).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT)
+				: null;
 	}
 
 	/**
@@ -155,6 +184,7 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 	 * @param sourceElement
 	 * @return list of affected Resources
 	 */
+	@Override
 	public Collection<Resource> getAffectedResources(TransactionalEditingDomain editingDomain, EObject sourceElement) throws IOException {
 		List<Resource> affectedResources = new ArrayList<Resource>();
 		String projectName = EcoreUtil.getURI(sourceElement).segment(1);

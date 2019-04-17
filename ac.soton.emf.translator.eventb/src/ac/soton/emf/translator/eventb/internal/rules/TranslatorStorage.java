@@ -43,7 +43,7 @@ public class TranslatorStorage implements ITranslatorStorage {
 	}
 
 	/* (non-Javadoc)
-	 * @see ac.soton.coda.vhdl.vxmiTranslator.ITranslatorStorage#fetch(java.lang.String)
+	 * @see ac.soton.emf.translator.eventb.rules.ITranslatorStorage#fetch(java.lang.String)
 	 */
 	@Override
 	public Object fetch(String key) {
@@ -51,7 +51,7 @@ public class TranslatorStorage implements ITranslatorStorage {
 	}
 
 	/* (non-Javadoc)
-	 * @see ac.soton.coda.vhdl.vxmiTranslator.ITranslatorStorage#stash(java.lang.String, ac.soton.coda.vhdl.IVHDLEntityDeclaration)
+	 * @see ac.soton.emf.translator.eventb.rules.ITranslatorStorage#stash(java.lang.String, Object)
 	 */
 	@Override
 	public void stash(String key, Object value) {

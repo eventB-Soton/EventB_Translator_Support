@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: ac.soton.emf.translator.eventb
-Bundle-Version: 0.0.1.release
+Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %pluginVendor
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
