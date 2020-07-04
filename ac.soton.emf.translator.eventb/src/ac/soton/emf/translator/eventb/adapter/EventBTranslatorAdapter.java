@@ -44,8 +44,10 @@ import org.eventb.emf.core.EventBNamedCommentedElement;
 import org.eventb.emf.core.EventBNamedCommentedPredicateElement;
 import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.context.Context;
+import org.eventb.emf.core.context.ContextPackage;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Machine;
+import org.eventb.emf.core.machine.MachinePackage;
 import org.eventb.emf.persistence.AttributeIdentifiers;
 
 import ac.soton.emf.translator.TranslationDescriptor;
@@ -235,12 +237,19 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 		//filter any new elements that are already there 	
 		if (translationDescriptor.parent!=null) { //if no parent we cannot check
 			Object featureValue = translationDescriptor.parent.eGet(translationDescriptor.feature);
+			
+			if (MachinePackage.Literals.MACHINE__INVARIANTS.equals(translationDescriptor.feature) ||
+					ContextPackage.Literals.CONTEXT__AXIOMS.equals(translationDescriptor.feature)	){
+				return constraintFilter((EventBNamedCommentedComponentElement) translationDescriptor.parent, 
+						(EventBNamedCommentedPredicateElement) translationDescriptor.value);
+			}
 			if (featureValue instanceof EList){
 				EList<?> list = (EList<?>)featureValue;
 				for (Object el : list){
 					if (match(el,translationDescriptor.value)) return false;
 				}
 			}
+
 			// filter any new values which are already present by event extension
 			if (translationDescriptor.parent instanceof Event){
 				for (Object el : getExtendedValues((Event)translationDescriptor.parent,translationDescriptor.feature)){
@@ -251,6 +260,35 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 		return true;
 	}
 
+	/**
+	 * @since 0.1
+	 */
+	protected boolean constraintFilter (EventBNamedCommentedComponentElement cp, EventBNamedCommentedPredicateElement newConstraint) {
+		EList<? extends EventBNamedCommentedPredicateElement> constraintsToCheck = null;
+		List<EventBNamedCommentedComponentElement> inScope = new ArrayList<EventBNamedCommentedComponentElement>();
+		if (cp instanceof Machine) {
+			inScope.addAll(((Machine)cp).getRefines());
+			inScope.addAll(((Machine)cp).getSees());
+			constraintsToCheck = ((Machine)cp).getInvariants();
+		}
+		if (cp instanceof Context) {
+			inScope.addAll(((Context)cp).getExtends());
+			constraintsToCheck = ((Context)cp).getAxioms();
+		}
+		for (EventBNamedCommentedPredicateElement existingConstraint : constraintsToCheck){
+			if (stringEquivalent(
+					((EventBNamedCommentedPredicateElement)existingConstraint).getPredicate(),
+					((EventBNamedCommentedPredicateElement)newConstraint).getPredicate()
+					)
+					){
+				return false;			
+			}
+		}
+		for (EventBNamedCommentedComponentElement  cp1 : inScope) {
+			if (cp1!=cp && constraintFilter(cp1, newConstraint) == false) return false;
+		}
+		return true;
+	}
 
 	/*
 	 * transitively get all the elements which are present by event extension
