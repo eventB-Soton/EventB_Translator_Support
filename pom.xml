@@ -8,7 +8,7 @@
   <name>Event-B Translator Support Root POM</name>
   <description>Root artifact for Event-B Translator Support</description>
   <!-- REQUIRED: Version number (using semantic versioning) -->
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1.release</version>
   <packaging>pom</packaging>
   <parent>
     <!-- REQUIRED: Group ID is the feature ID -->
@@ -16,7 +16,7 @@
     <!-- Name of the release engineering artifact -->
     <artifactId>releng</artifactId>
     <!-- REQUIRED: Version number of the release engineering artifact -->
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1.release</version>
     <!-- REQUIRED: Relative path to the release engineering artifact -->
     <relativePath>./ac.soton.emf.translator.eventb.releng</relativePath>
   </parent>
@@ -24,7 +24,6 @@
   <modules>
     <!-- LATER: List of modules in this build -->
     <module>ac.soton.emf.translator.eventb</module>
-    <!-- <module>ac.soton.emf.translator.doc</module> -->
     <module>ac.soton.emf.translator.eventb.feature</module>
     <module>ac.soton.emf.translator.eventb.sdk</module>
   </modules>
