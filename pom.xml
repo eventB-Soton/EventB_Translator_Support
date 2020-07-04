@@ -8,7 +8,7 @@
   <name>Event-B Translator Support Root POM</name>
   <description>Root artifact for Event-B Translator Support</description>
   <!-- REQUIRED: Version number (using semantic versioning) -->
-  <version>0.0.1.release</version>
+  <version>0.1.0.release</version>
   <packaging>pom</packaging>
   <parent>
     <!-- REQUIRED: Group ID is the feature ID -->
