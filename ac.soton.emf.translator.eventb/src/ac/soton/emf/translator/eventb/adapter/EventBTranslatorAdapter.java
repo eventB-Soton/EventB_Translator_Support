@@ -285,9 +285,6 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 			}
 		}
 		for (EventBNamedCommentedComponentElement  cp1 : inScope) {
-			if (cp==cp1) {
-				int i=0;
-			}
 			if (cp1!=cp && constraintFilter(cp1, newConstraint) == false) return false;
 		}
 		return true;
