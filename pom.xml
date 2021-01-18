@@ -16,7 +16,7 @@
     <!-- Name of the release engineering artifact -->
     <artifactId>releng</artifactId>
     <!-- REQUIRED: Version number of the release engineering artifact -->
-    <version>0.0.1.release</version>
+    <version>0.0.2.release</version>
     <!-- REQUIRED: Relative path to the release engineering artifact -->
     <relativePath>./ac.soton.emf.translator.eventb.releng</relativePath>
   </parent>
