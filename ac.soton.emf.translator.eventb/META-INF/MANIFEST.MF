@@ -5,7 +5,7 @@ Bundle-SymbolicName: ac.soton.emf.translator.eventb
 Bundle-Version: 0.1.0.release
 Bundle-Vendor: %pluginVendor
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: ac.soton.emf.translator;bundle-version="[3.0.0,4.0.0)",
  org.rodinp.core;bundle-version="[1.7.0,2.0.0)",
  org.eventb.emf.persistence;bundle-version="[3.5.1,4.0.0)",
