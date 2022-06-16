@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2017 University of Southampton.
+ * Copyright (c) 2014, 2022 University of Southampton.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -57,13 +58,19 @@ public class Make {
 	}
 	
 	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority){
-		return new TranslationDescriptor(parent,feature,value,Integer.valueOf(priority), false);
+		return new TranslationDescriptor(parent,feature,value,Integer.valueOf(priority));
 	}
 	
 	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value , Boolean remove) {
 		return new TranslationDescriptor(parent, feature, value, remove);
 	}
 	
+	/**
+	 * @since 1.0
+	 */
+	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, EObject after, int priority) {
+		return new TranslationDescriptor(parent, feature, value, after, priority);
+	}
 	
 	 public static Variable variable(String name, String comment) {
 		Variable v =  MachineFactory.eINSTANCE.createVariable();
@@ -212,7 +219,5 @@ public class Make {
 		((InternalEObject)proxy).eSetProxyURI(uri);
 		return proxy;
 	}
-
-
 	
 }

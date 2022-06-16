@@ -48,6 +48,10 @@ public abstract class AbstractEventBGeneratorRule extends AbstractRule implement
 	protected static final EReference _extends = ContextPackage.Literals.CONTEXT__EXTENDS;
 	protected static final EAttribute extendsNames = ContextPackage.Literals.CONTEXT__EXTENDS_NAMES;
 	protected static final EReference extensions = CorePackage.Literals.EVENT_BELEMENT__EXTENSIONS;
+	/**
+	 * @since 1.0
+	 */
+	protected static final EReference orderedChildren = CorePackage.Literals.EVENT_BELEMENT__ORDERED_CHILDREN;
 
 	protected ITranslatorStorage storage = TranslatorStorage.getDefault();
 
