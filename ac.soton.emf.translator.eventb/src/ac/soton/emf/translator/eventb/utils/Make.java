@@ -68,8 +68,8 @@ public class Make {
 	/**
 	 * @since 1.0
 	 */
-	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, EObject after, int priority) {
-		return new TranslationDescriptor(parent, feature, value, after, priority);
+	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, EObject before, int priority) {
+		return new TranslationDescriptor(parent, feature, value, before, priority);
 	}
 	
 	 public static Variable variable(String name, String comment) {
