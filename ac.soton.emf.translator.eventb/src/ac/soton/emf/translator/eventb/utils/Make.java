@@ -53,8 +53,8 @@ public class Make {
 		return sourceElement.getExtensionId();
 	}
 	
-	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority, boolean editable){
-		return new TranslationDescriptor(parent,feature,value, Integer.valueOf(priority), editable);
+	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority, boolean remove){
+		return new TranslationDescriptor(parent,feature,value, Integer.valueOf(priority), remove);
 	}
 	
 	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority){
