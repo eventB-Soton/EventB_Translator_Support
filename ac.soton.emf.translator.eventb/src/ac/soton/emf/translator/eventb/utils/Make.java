@@ -79,7 +79,16 @@ public class Make {
 		return new TranslationDescriptor(parent,feature,value, null, null, true, null);
 	}
 	
-	 public static Variable variable(String name, String comment) {
+	// Making Event-B elements
+	
+	/**
+	 * Make a Variable
+	 * 
+	 * @param name
+	 * @param comment
+	 * @return
+	 */
+	public static Variable variable(String name, String comment) {
 		Variable v =  MachineFactory.eINSTANCE.createVariable();
 	    v.setName(name);
 	    v.setLocalGenerated(true);
@@ -87,10 +96,27 @@ public class Make {
 	    return v;  
 	 }
 	  
+	/**
+	 * Make an Invariant
+	 * 
+	 * @param name
+	 * @param predicate
+	 * @param comment
+	 * @return
+	 */
 	public static Invariant invariant(String name, String predicate, String comment) {
 		return invariant(name, false, predicate, comment);
 	}
 		
+	/**
+	 * Make an Invariant or Theorem
+	 * 
+	 * @param name
+	 * @param theorem
+	 * @param predicate
+	 * @param comment
+	 * @return
+	 */
 	public static Invariant invariant(String name, boolean theorem, String predicate,String comment) {
 		Invariant i =  MachineFactory.eINSTANCE.createInvariant();
 	    i.setName(name);
@@ -101,11 +127,18 @@ public class Make {
 	    return i;  
 	}
 
-	public static Object event(String name) {
-		return event(name, false, Convergence.ORDINARY, Collections.<String> emptyList(), "");
-	}
-		
-	public static Object event(String name, boolean extended, Convergence convergence, List<String> refinesNames, String comment) {
+	/**
+	 * Make an Event
+	 * 
+	 * @param name
+	 * @param extended
+	 * @param convergence
+	 * @param refinesNames
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Event event(String name, boolean extended, Convergence convergence, List<String> refinesNames, String comment) {
 		Event e =  MachineFactory.eINSTANCE.createEvent();
 	    e.setName(name);
 	    e.setExtended(extended);
@@ -115,12 +148,29 @@ public class Make {
 	    e.setComment(comment);
 	    return e;  
 	}
-
-	public static Object parameter(String name){
-		return parameter(name,"");
+	
+	/**
+	 * Make an Event with the usual default properties
+	 * 
+	 * @param name
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Event event(String name, String comment) {
+		return event(name, false, Convergence.ORDINARY, Collections.<String> emptyList(), comment);
 	}
 	
-	public static Object parameter(String name, String comment) {
+	
+	/**
+	 * Make a Parameter
+	 * 
+	 * @param name
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Parameter parameter(String name, String comment) {
 		Parameter p =  MachineFactory.eINSTANCE.createParameter();
 	    p.setName(name);
 	    p.setLocalGenerated(true);
@@ -128,11 +178,30 @@ public class Make {
 	    return p;  
 	}
 	
-	public static Object guard(String name, String predicate){
+	/**
+	 * Make a Guard
+	 * 
+	 * @param name
+	 * @param predicate
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Guard guard(String name, String predicate, String comment){
 		return guard(name, false, predicate, "");
 	}
 	
-	public static Object guard(String name, boolean theorem, String predicate, String comment) {
+	/**
+	 * Make a Guard or Theorem
+	 * 
+	 * @param name
+	 * @param theorem
+	 * @param predicate
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Guard guard(String name, boolean theorem, String predicate, String comment) {
 		Guard g =  MachineFactory.eINSTANCE.createGuard();
 	    g.setName(name);
 	    g.setTheorem(theorem);
@@ -142,11 +211,16 @@ public class Make {
 	    return g;  
 	}
 	
-	public static Object action(String name, String expression){
-		return action(name, expression, "");
-	}
-	
-	public static Object action(String name, String expression, String comment) {
+	/**
+	 * Make an Action
+	 * 
+	 * @param name
+	 * @param expression
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Action action(String name, String expression, String comment) {
 		Action a =  MachineFactory.eINSTANCE.createAction();
 	    a.setName(name);
 	    a.setAction(expression);
@@ -155,7 +229,15 @@ public class Make {
 	    return a;  
 	}
 
-	public static Object context(String name, String comment) {
+	/**
+	 * Make a Context
+	 * 
+	 * @param name
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Context context(String name, String comment) {
 		Context ctx =  ContextFactory.eINSTANCE.createContext();
 	    ctx.setName(name);
 	    ctx.setLocalGenerated(true);
@@ -163,7 +245,15 @@ public class Make {
 	    return ctx;
 	}
 
-	public static Object set(String name, String comment) {
+	/**
+	 * Make a Carrier Set
+	 * 
+	 * @param name
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static CarrierSet set(String name, String comment) {
 		CarrierSet set =  ContextFactory.eINSTANCE.createCarrierSet();
 	    set.setName(name);
 	    set.setLocalGenerated(true);
@@ -171,7 +261,15 @@ public class Make {
 	    return set;
 	}
 
-	public static Object constant(String name, String comment) {
+	/**
+	 * Make a Constant
+	 * 
+	 * @param name
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Constant constant(String name, String comment) {
 		Constant constant =  ContextFactory.eINSTANCE.createConstant();
 	    constant.setName(name);
 	    constant.setLocalGenerated(true);
@@ -179,10 +277,27 @@ public class Make {
 	    return constant;
 	}
 
+	/**
+	 * Make an Axiom
+	 * 
+	 * @param name
+	 * @param predicate
+	 * @param comment
+	 * @return
+	 */
 	public static Axiom axiom(String name, String predicate,String comment) {
 		return axiom(name,false, predicate, comment);
 	}
 	
+	/**
+	 * Make an Axiom or Theorem
+	 * 
+	 * @param name
+	 * @param theorem
+	 * @param predicate
+	 * @param comment
+	 * @return
+	 */
 	public static Axiom axiom(String name, boolean theorem, String predicate,String comment) {
 		Axiom axm =  ContextFactory.eINSTANCE.createAxiom();
 	    axm.setName(name);
@@ -192,13 +307,17 @@ public class Make {
 	    axm.setComment(comment);
 	    return axm;  
 	}
-
-	@Deprecated
-	public static Object witness(String name, String predicate) {
-		return witness(name,predicate,"");
-	}
 	
-	public static Object witness(String name, String predicate, String comment) {
+	/**
+	 * Make a Witness
+	 * 
+	 * @param name
+	 * @param predicate
+	 * @param comment
+	 * @return
+	 * @since 1.0
+	 */
+	public static Witness witness(String name, String predicate, String comment) {
 		Witness g =  MachineFactory.eINSTANCE.createWitness();
 	    g.setName(name);
 	    g.setPredicate(predicate);
