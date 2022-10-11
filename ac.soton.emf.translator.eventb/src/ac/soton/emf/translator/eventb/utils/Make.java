@@ -22,8 +22,9 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
+import org.eventb.emf.core.EventBNamedCommentedComponentElement;
+import org.eventb.emf.core.EventBNamedCommentedElement;
 import org.eventb.emf.core.context.Axiom;
 import org.eventb.emf.core.context.CarrierSet;
 import org.eventb.emf.core.context.Constant;
@@ -48,28 +49,34 @@ import ac.soton.emf.translator.TranslationDescriptor;
  */
 
 public class Make {
-	
-	public static String generatedById(AbstractExtension sourceElement){
-		return sourceElement.getExtensionId();
-	}
-	
-	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority, boolean remove){
-		return new TranslationDescriptor(parent,feature,value, Integer.valueOf(priority), remove);
-	}
-	
-	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority){
-		return new TranslationDescriptor(parent,feature,value,Integer.valueOf(priority));
-	}
-	
-	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value , Boolean remove) {
-		return new TranslationDescriptor(parent, feature, value, remove);
+
+	/**
+	 * Make a TranslationDescriptor to add a newly generated element 
+	 * 
+	 * @param parent
+	 * @param feature
+	 * @param value
+	 * @param before
+	 * @param priority
+	 * @param source
+	 * @return
+	 * @since 1.0
+	 */
+	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, EObject before, int priority, EObject source){
+		return new TranslationDescriptor(parent,feature,value, before, Integer.valueOf(priority), false, source);
 	}
 	
 	/**
+	 * Make a TranslationDescriptor to remove an element 
+	 * 
+	 * @param parent
+	 * @param feature
+	 * @param value
+	 * @return
 	 * @since 1.0
 	 */
-	public static TranslationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, EObject before, int priority) {
-		return new TranslationDescriptor(parent, feature, value, before, priority);
+	public static TranslationDescriptor removeDescriptor(EventBElement parent, EStructuralFeature feature, Object value){
+		return new TranslationDescriptor(parent,feature,value, null, null, true, null);
 	}
 	
 	 public static Variable variable(String name, String comment) {
