@@ -63,4 +63,57 @@ public class Utils {
 		}
 		return null;
 	}
+	
+//	/**
+//	 * Convenience method to check whether an element has been generated already in the list of TranslationDescriptors
+//	 * (parent and/or feature may be null if not required to be matched)
+//	 * 
+//	 * @param generatedElements
+//	 * @param parent (or null)
+//	 * @param feature (or null)
+//	 * @param identifier
+//	 * @return
+//	 */
+//	public static boolean generated(List<TranslationDescriptor> generatedElements, EventBElement parent, EStructuralFeature feature, String identifier){
+//		return Find.generatedElement(generatedElements, parent, feature, identifier) != null;
+//	}
+//	
+//
+//	public static boolean generatedBy(Object object, Object sourceElement){
+//		if (sourceElement instanceof EventBObject){
+//			AbstractExtension ae = (AbstractExtension) ((EventBObject) sourceElement).getContaining(CorePackage.Literals.ABSTRACT_EXTENSION);
+//			if (ae instanceof AbstractExtension){
+//				return generatedBy(object, Make.generatedById(ae));
+//			}
+//		}
+//		return false;
+//	}
+//	
+//	public static boolean generatedBy(Object object, String id){
+//		if (object instanceof EventBElement){
+//			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
+//			if (generatedBy!= null && id.equals(generatedBy.getValue()) ){
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//	
+//	public static boolean generated(Object object){
+//		if (object instanceof EventBElement){
+//			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
+//			if (generatedBy!= null){
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//	
+//	public static boolean readOnly(Object object){
+//		if (object instanceof EventBElement){
+//			return ((EventBElement)object).isLocalGenerated();
+//		}
+//		return false;
+//	}
+	
 }
