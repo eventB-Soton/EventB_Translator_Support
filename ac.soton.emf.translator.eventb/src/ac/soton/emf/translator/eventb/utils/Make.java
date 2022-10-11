@@ -201,18 +201,30 @@ public class Make {
 	}
 
 	/**
-	 * Constructs a reference to a variable that will exist in the future. 
-	 * The machine is used to construct the USI of the proxy so the machine must 
-	 * already be linked to a resource in the workspace
+	 * Constructs a reference to an element that will exist in the future. 
+	 * The component (which must be a machine or context) is used to construct
+	 * the URI of the proxy - so it must already be linked to a resource in the workspace.
 	 * 
-	 * @param machine (must be in a resource so that it has a full URI to its final resource)
-	 * @param variableName - the name of a variable that will reside in the variables collection of the machine
+	 * @param component - Machine or Context that will contain the element (must already be in a resource so that it has a full URI to its final resource)
+	 * @param proxy  - an EventB Element to be used as the proxy (use the relevant Factory to create a fresh element of the desired type)
+	 * @param name - the name of the element
 	 * @return
+	 * @since 1.0
 	 */
-	public static Variable variableProxyReference(Machine machine, String variableName) {
-		Variable proxy = MachineFactory.eINSTANCE.createVariable();
-		URI uri = EcoreUtil.getURI(machine);
-		String fragment = uri.fragment().replace("::Machine::","::Variable::")+"."+variableName;
+	public static EventBNamedCommentedElement proxyReference(EventBNamedCommentedComponentElement component, EventBNamedCommentedElement proxy, String name) {
+		//work out the name of the component type .. "Machine" or "Context"
+		String componentType;
+		if (component instanceof Machine) {
+			componentType = "Machine";
+		}else if (component instanceof Context) {
+			componentType = "Context";
+		}else
+			return proxy;
+		//work out the name of the element type
+		String elementType = proxy.eClass().getName();
+		//create a uri to reference the named element
+		URI uri = EcoreUtil.getURI(component);
+		String fragment = uri.fragment().replace("::"+componentType+"::","::"+elementType+"::")+"."+name;
 		uri = uri.trimFragment();
 		uri = uri.appendFragment(fragment);
 		//set the proxy uri
