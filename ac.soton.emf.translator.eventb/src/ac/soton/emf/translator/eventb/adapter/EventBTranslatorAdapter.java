@@ -51,18 +51,20 @@ import org.eventb.emf.core.context.ContextPackage;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.core.machine.MachinePackage;
-import org.eventb.emf.persistence.AttributeIdentifiers;
 
 import ac.soton.emf.translator.TranslationDescriptor;
+import ac.soton.emf.translator.configuration.AttributeIdentifiers;
 import ac.soton.emf.translator.configuration.DefaultAdapter;
 import ac.soton.emf.translator.configuration.IAdapter;
 import ac.soton.emf.translator.eventb.utils.Utils;
 
-
 /**
- * This implementation of IAdapter can be used for importers that target
- *  the EventB EMF meta-model and its extensions
+ * This implementation of IAdapter can be used for translations that target
+ *  the EventB EMF meta-model and its extensions.
  * 
+ *  @see ac.soton.emf.translator.configuration.IAdapter
+ *  @see ac.soton.emf.translator.configuration.DefaultAdapter
+ *  
  * @author cfs
  *
  */
@@ -70,21 +72,38 @@ import ac.soton.emf.translator.eventb.utils.Utils;
 public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter {
 
 	/**
-	 * used to store the order position of extensions
+	 * used to store the order/position of extensions in the source
+	 * The key(String) is the ExtensionID property of an AbstractExtension (if it has one)
+	 * The value(Integer) is the position of that AbstractExtension in the containment of its parent.
+	 * 
+	 * @see org.eventb.emf.core.AbstractExtension
 	 */
 	private Map<String,Integer> extensionOrder = new HashMap<String,Integer>();
 	
 	/**
 	 * 
-	 * @param object
-	 * @return
+	 * Gets the position of the source extension from which the given object was generated.
+	 * The idea of this is that the translator will maintain the order of generated elements in accordance with the 
+	 * source from which they were generated. If the target is not an EventBElement or does not have an appropriate 
+	 * reference to a Extension in an attribute whose key is AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY, 
+	 * the returned position is the end of the list
+	 * 
+	 * @see ac.soton.emf.translator.eventb.adapter.EventBTranslatorAdapter.extensionOrder
+	 * @see AttributeIdentifiers
+	 * 
+	 * @param target
+	 * @return position in the extensionOrder list 
+	 * 
 	 */
-	protected Integer getExtensionPosition(Object object) {
-		if (object instanceof EventBElement){
-			Attribute generatorAttribute = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
-			String generatorID = (String) (generatorAttribute==null? null : generatorAttribute.getValue());
-			Integer v_xod = extensionOrder.get(generatorID);
-			if (v_xod==null) v_xod = extensionOrder.size(); // not an extension => user entered stuff comes last
+	protected Integer getExtensionPosition(Object target) {
+		if (target instanceof EventBElement){
+			Attribute attribute = ((EventBElement)target).getAttributes().get(AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY);
+			if (attribute==null) return extensionOrder.size();
+			String translation_ID = (String) attribute.getValue();
+			if (translation_ID==null || !translation_ID.contains("::")) return extensionOrder.size();
+			String extensionID = translation_ID.substring(translation_ID.lastIndexOf("::")+2);
+			Integer v_xod = extensionOrder.get(extensionID);
+			if (v_xod==null) return extensionOrder.size(); // not an extension => user entered stuff comes last
 			return v_xod;
 		}else{
 			return extensionOrder.size();
@@ -92,7 +111,12 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 	}
 
 	/**
+	 * {@inheritDoc}
 	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * Resets any storage in Utils.storage, then calculates and records the extensionOrder list.
+	 * 
+	 * @see ac.soton.emf.translator.eventb.utils.Utils
 	 * 
 	 */
 	@Override	
@@ -106,37 +130,47 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 				for (EObject ae : ((EventBObject) targetComponent).getAllContained(CorePackage.Literals.ABSTRACT_EXTENSION, true)){
 					if (ae !=null) {
 						String id = ((AbstractExtension)ae).getExtensionId();
-						extensionOrder.put(id, i++);
-						EClass eclass = ae.eClass();
-						EList<EReference> refs = eclass.getEReferences();
-						for (EReference r : refs) {
-							Object rae = ae.eGet(r);
-							if (rae instanceof AbstractExtension) {
-								id = ((AbstractExtension)rae).getExtensionId();
-								extensionOrder.put(id, i++);
+						if (id != null && !extensionOrder.containsKey(id)) {
+							extensionOrder.put(id, i++);
+							EClass eclass = ae.eClass();
+							EList<EReference> refs = eclass.getEReferences();
+							for (EReference r : refs) {
+								Object rae = ae.eGet(r);
+								if (rae instanceof AbstractExtension) {
+									id = ((AbstractExtension)rae).getExtensionId();
+									extensionOrder.put(id, i++);
+								}
 							}
 						}
 					}
 				}
 			}
 		}
+		super.initialiseAdapter(sourceElement);
 	}
 
 	/**
-	 * This can be overridden to extend the method of obtaining the component used as the target for translation
-	 * This is called when the adapter is initialised in order to cache the target in the storage area
+	 * {@inheritDoc}
 	 * 
-	 * @since 0.1
+	 * EventBTranslatorAdapter implementation:
+	 * if sourceElement is an EventBObject, returns its containing EventBNamedCommentedComponentElement.
+	 * otherwise defers to super
+	 * 
+	 * @since 1.0
 	 */
-	//TODO: should this be added to IAdapter?
-	protected Object getTargetComponent(Object sourceElement) {
+	@Override
+	public Object getTargetComponent(Object sourceElement) {
 		return sourceElement instanceof EventBObject? 
 				((EventBObject)sourceElement).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT)
-				: null;
+				: super.getTargetComponent(sourceElement);
 	}
 
 	/**
-	 * returns true if feature is project components and value is a EventBNamedCommentdComponentElement
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * Return true if feature is Components in a Project and value is an EventBNamedCommentedComponentElement
+	 * Otherwise return false.
 	 * 
 	 */
 	@Override
@@ -151,15 +185,22 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 
 	
 	/**
-	 * returns a URI for..
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * If the translation descriptor is for a removal, returns null. Otherwise,
+	 * Uses the given root source element to form the basis of a URL (the project is assumed to be the same)
+	 * and the generated 'value' in the translation descriptor to find a component name and file extension
+	 * Return a URI for..
 	 *  a Rodin machine (.bum) or..
 	 *  a Rodin context (.buc) or..
+	 *  If this does not succeed, defers to super.
 	 *  
 	 */
 	@Override
-	public URI getComponentURI(TranslationDescriptor translationDescriptor, EObject rootElement) {
+	public URI getComponentURI(TranslationDescriptor translationDescriptor, EObject rootSourceElement) {
 		if (translationDescriptor.remove == true) return null;
-		String projectName = EcoreUtil.getURI(rootElement).segment(1);
+		String projectName = EcoreUtil.getURI(rootSourceElement).segment(1);
 		URI projectUri = URI.createPlatformResourceURI(projectName, true);
 		EventBNamedCommentedComponentElement component = null;
 		if (translationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
@@ -177,17 +218,15 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 			URI fileUri = projectUri.appendSegment(fileName).appendFileExtension(ext); //$NON-NLS-1$
 			return fileUri;
 		}
-		return null;
+		return super.getComponentURI(translationDescriptor, rootSourceElement);
 	}
 	
 	/**
-	 * @see ac.soton.emf.translator.configuration.DefaultAdapter#getAffectedResources(org.eclipse.emf.transaction.TransactionalEditingDomain, org.eclipse.emf.ecore.EObject)
+	 * {@inheritDoc}
 	 * 
-	 * This implementation returns all EMF resources in the same project as the source element that are EventB Machines or Contexts 
+	 * EventBTranslatorAdapter implementation:
+	 * Return all EMF resources in the same project as the source element that are EventB Machines or Contexts 
 	 * 
-	 * @param editingDomain
-	 * @param sourceElement
-	 * @return list of affected Resources
 	 */
 	@Override
 	public Collection<Resource> getAffectedResources(TransactionalEditingDomain editingDomain, EObject sourceElement) throws IOException {
@@ -220,19 +259,27 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 	}
 	
 
-	/* (non-Javadoc)
-	 * @see ac.soton.emf.translator.IAdapter#inputFilter(java.lang.Object)
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * defers to super
+	 * 
 	 */
 	@Override
-	public boolean inputFilter(Object object,  Object sourceID) {
-		return !(object instanceof EventBElement && 
-				sourceID.equals(
-					((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY))
-				);
+	public boolean inputFilter(Object object,  String translationId) {
+		return super.inputFilter(object, translationId);
 	}
 	
-	/* (non-Javadoc)
-	 * @see ac.soton.emf.translator.IAdapter#outputFilter(java.lang.Object)
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * The following are filtered out (i.e. return false):
+	 * 1) invariants and axioms which are already present in the parent or in scope via context extension/sees or machine refinement
+	 * 2) features of the parent event which are already present or present via event extension
+	 * 3) anything filtered out by super
+	 * 
 	 */
 	@Override
 	public boolean outputFilter(TranslationDescriptor translationDescriptor) {
@@ -249,34 +296,42 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 			if (featureValue instanceof EList){
 				EList<?> list = (EList<?>)featureValue;
 				for (Object el : list){
-					if (match(el,translationDescriptor.value)) return false;
+					if (match(el,translationDescriptor.value)) 
+						return false;
 				}
 			}
 
 			// filter any new values which are already present by event extension
 			if (translationDescriptor.parent instanceof Event){
 				for (Object el : getExtendedValues((Event)translationDescriptor.parent,translationDescriptor.feature)){
-					if (match(el,translationDescriptor.value)) return false;
+					if (match(el,translationDescriptor.value)) 
+						return false;
 				}
 			}
 		}
-		return true;
+		return super.outputFilter(translationDescriptor);
 	}
 
 	/**
+	 * Local method used by outputFilter.
+	 * Prevents repeating invariants and axioms when they are already in scope via machine/context relationships.
+	 * 
+	 * @param component
+	 * @param newConstraint
+	 * @return whether the new constraint should be added or not
 	 * @since 0.1
 	 */
-	protected boolean constraintFilter (EventBNamedCommentedComponentElement cp, EventBNamedCommentedPredicateElement newConstraint) {
+	protected boolean constraintFilter (EventBNamedCommentedComponentElement component, EventBNamedCommentedPredicateElement newConstraint) {
 		EList<? extends EventBNamedCommentedPredicateElement> constraintsToCheck = null;
 		List<EventBNamedCommentedComponentElement> inScope = new ArrayList<EventBNamedCommentedComponentElement>();
-		if (cp instanceof Machine) {
-			inScope.addAll(((Machine)cp).getRefines());
-			inScope.addAll(((Machine)cp).getSees());
-			constraintsToCheck = ((Machine)cp).getInvariants();
+		if (component instanceof Machine) {
+			inScope.addAll(((Machine)component).getRefines());
+			inScope.addAll(((Machine)component).getSees());
+			constraintsToCheck = ((Machine)component).getInvariants();
 		}
-		if (cp instanceof Context) {
-			inScope.addAll(((Context)cp).getExtends());
-			constraintsToCheck = ((Context)cp).getAxioms();
+		if (component instanceof Context) {
+			inScope.addAll(((Context)component).getExtends());
+			constraintsToCheck = ((Context)component).getAxioms();
 		}
 		for (EventBNamedCommentedPredicateElement existingConstraint : constraintsToCheck){
 			if (stringEquivalent(
@@ -288,13 +343,18 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 			}
 		}
 		for (EventBNamedCommentedComponentElement  cp1 : inScope) {
-			if (cp1!=cp && constraintFilter(cp1, newConstraint) == false) return false;
+			if (cp1!=component && constraintFilter(cp1, newConstraint) == false) return false;
 		}
 		return true;
 	}
 
-	/*
-	 * transitively get all the elements which are present by event extension
+	/**
+	 * Local method used by outputFilter.
+	 * for a particular feature, transitively get all the elements which are present by event extension
+	 * 
+	 * @param event
+	 * @param feature
+	 * @return a list of elements in the feature, either directly or by event extension
 	 */
 	@SuppressWarnings("unchecked")
 	private List<Object> getExtendedValues(Event event, EStructuralFeature feature) {
@@ -314,10 +374,15 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 ///end of filter
 
 	/**
-	 * match
-	 * test whether two elements should be considered to be the same in event B terms
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * Tests whether two elements should be considered to be the same in event B terms.
+	 * I.e. two predicate elements have equivalent predicate strings
+	 * 		two action elements have equivalent action strings
+	 * 		two named elements have equivalent name strings
+	 * 		two strings are equal
 	 */
-	
 	@Override
 	public boolean match(Object el1, Object el2) {
 		if (el1.getClass()!=el2.getClass()) return false;
@@ -351,94 +416,129 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 	////end of match
 	
 	/**
-	 * get the generator ID from the given EObject
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * construct a translation ID from the given basic part and the given root source element
+	 * using "::" as a separator. The part from the source element depends on its type.
+	 * For a AbstractExtension it is the Extension ID and for a EventBelement it is its reference ID.
+	 * If it is neither of these, defer to super.
+	 * 
 	 */
 	@Override
-	public Object getSourceId(Object object){
-		return object instanceof AbstractExtension ? 
-				((AbstractExtension)object).getExtensionId()
-			:	object instanceof EventBElement ? 
-				((EventBElement)object).getReference()
+	public String getTranslationId(String basicTranslatorID, Object rootSourceElement){
+		return  rootSourceElement instanceof AbstractExtension ? 
+					basicTranslatorID+"::"+((AbstractExtension)rootSourceElement).getExtensionId()
+			:	rootSourceElement instanceof EventBElement ? 
+					basicTranslatorID+"::"+((EventBElement)rootSourceElement).getReference()
 			:
-				null;
+				super.getTranslationId(basicTranslatorID, rootSourceElement);
 	}
 
 	/**
-	 * adds attributes to record:
-	 * a) the id of the extension that generated this element
-	 * b) the fact that this element is generated
+	 * {@inheritDoc}
 	 * 
-	 * @param generatedByID
-	 * @param element
-	 */
-	@Override
-	public void annotateTarget(Object sourceID, Object object) {
-		if (object instanceof EventBElement && sourceID instanceof String){
-			EventBElement element = (EventBElement)object;
-			// set the generated property
-			element.setLocalGenerated(true);				
-			// add an attribute with this generators ID
-			Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
-			genID.setValue(sourceID);
-			genID.setType(AttributeType.STRING);
-			element.getAttributes().put(AttributeIdentifiers.GENERATOR_ID_KEY,genID);
-		}
-	}
-	
-	/**
+	 * EventBTranslatorAdapter implementation:
+	 * if target is an EventBElement and translationID is not null,
+	 * 	1) sets the local generated property of the element,
+	 * 	2) adds a string attribute to the element whose
+	 * 		key is AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY and whose
+	 * 		value is the given translation ID string
+	 * otherwise, defers to super.
+	 * @see AttributeIdentifiers
 	 * 
 	 */
 	@Override
-	public boolean isAnnotatedWith(Object object, Object sourceID) {
-		if (object instanceof EventBElement){
-			Attribute translatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
-			if (translatedBy!= null && sourceID.equals(translatedBy.getValue()) ){
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
-	 * @param v
-	 * @return
-	 */
-	protected int getPriority(Object object) {
-		if (object instanceof EventBObject){
-			Attribute priorityAttribute= ((EventBElement)object).getAttributes().get(AttributeIdentifiers.PRIORITY_KEY);
-			Integer pri = (Integer) (priorityAttribute==null? null : priorityAttribute.getValue());
-			if (pri==null) pri = 0; // no priority => user stuff at priority 0
-			return pri;
+	public void setGeneratedBy(Object target, String translationID) {
+		if (target instanceof EventBElement && translationID!=null){
+				// set the generated property
+				((EventBElement)target).setLocalGenerated(true);				
+				// add an attribute with this translation ID
+				Attribute attribute =   CoreFactory.eINSTANCE.createAttribute();
+				attribute.setValue(translationID);
+				attribute.setType(AttributeType.STRING);
+				((EventBElement)target).getAttributes().put(AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY,attribute);
 		}else{
-			return 0;
+			super.setGeneratedBy(target, translationID);
+		}	
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * if target is an EventBElement and translationID is not null,
+	 *  returns true if the target has an attribute whose 
+	 *    key is AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY and whose
+	 *    value matches the translationID.
+	 *    and false if not.
+	 * Otherwise defers to super.
+	 * @see AttributeIdentifiers
+	 * 
+	 */
+	@Override
+	public boolean wasGeneratedBy(Object target, String translationId) {
+		if (target instanceof EventBElement && translationId!=null){
+			Attribute attribute = ((EventBElement)target).getAttributes().get(AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY);
+			return attribute!= null && translationId.equals(attribute.getValue());
+		}
+		return super.wasGeneratedBy(target, translationId);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * if the source and target are both EventBElement, 
+	 * adds to target, a string attribute whose
+	 *   key is AttributeIdentifiers.TRANSLATOR__SOURCE_ELEMENT_KEY and whose
+	 *   value is the the uri of the source as a string.
+	 * Otherwise defers to super
+	 * @see AttributeIdentifiers
+	 */
+	public void setSourceElement(Object target, Object source) {
+		if (target instanceof EventBElement && source instanceof EventBElement) {
+			Attribute attribute =   CoreFactory.eINSTANCE.createAttribute();
+			attribute.setValue(EcoreUtil.getURI((EObject)source).toString());
+			attribute.setType(AttributeType.STRING);
+			((EventBElement)target).getAttributes().put(AttributeIdentifiers.TRANSLATOR__SOURCE_ELEMENT_KEY,attribute);
+		}else {
+			super.setSourceElement(target, source);
 		}
 	}
 	
 	/**
-	 * adds attributes to record:
-	 * a) the priority of this element for ordering
+	 * {@inheritDoc}
 	 * 
-	 * @param priority
-	 * @param element
+	 * EventBTranslatorAdapter implementation:
+	 * if the object is an EventBElement,
+	 *   adds to the element, an integer attribute whose 
+	 *   key is AttributeIdentifiers.TRANSLATOR__PLACEMENT_PRIORITY_KEY and whose
+	 *   value is the given priority
+	 * @see AttributeIdentifiers
+	 * 
 	 */
 	@Override
-	public void setPriority(int priority, Object object) {
+	public void setPriority(Object object, int priority) {
 		if (object instanceof EventBElement){
 			EventBElement element = (EventBElement)object;
 			// add an attribute with the priority for ordering
-			Attribute pri =   CoreFactory.eINSTANCE.createAttribute();
-			pri.setValue(priority);
-			pri.setType(AttributeType.INTEGER);
-			element.getAttributes().put(AttributeIdentifiers.PRIORITY_KEY,pri);
+			Attribute attribute =   CoreFactory.eINSTANCE.createAttribute();
+			attribute.setValue(priority);
+			attribute.setType(AttributeType.INTEGER);
+			element.getAttributes().put(AttributeIdentifiers.TRANSLATOR__PLACEMENT_PRIORITY_KEY,attribute);
 		}
 	}
 
 	/**
+	 * {@inheritDoc}
+	 * 
+	 * EventBTranslatorAdapter implementation:
+	 * If the object is an EventBElement, the position is after any higher priority elements and after
+	 * any elements that were generated by extensions that occur earlier in the model than the extension that generated this object.
 	 * 
 	 * @see ac.soton.emf.translator.configuration.IAdapter#getPos(org.eclipse.emf.common.util.EList, int)
-	 * 
-	 * 
-	 * 
+	 *
 	 */
 	@Override
 	public int getPos(List<?> list, Object object) {
@@ -471,5 +571,25 @@ public class EventBTranslatorAdapter extends DefaultAdapter implements IAdapter 
 		}
 	}
 
-
+	
+	/**
+	 * Local method to get the priority value of the given object.
+	 * If the object is an EventBObject and has an attribute with key AttributeIdentifiers.TRANSLATOR__PLACEMENT_PRIORITY_KEY
+	 * the attributes value is returned.
+	 * Otherwise return 0.
+	 * @see AttributeIdentifiers
+	 * 
+	 * @param object
+	 * @return
+	 */
+	protected int getPriority(Object object) {
+		if (object instanceof EventBObject){
+			Attribute attribute= ((EventBElement)object).getAttributes().get(AttributeIdentifiers.TRANSLATOR__PLACEMENT_PRIORITY_KEY);
+			Integer pri = (Integer) (attribute==null? null : attribute.getValue());
+			if (pri==null) pri = 0; // no priority => user stuff at priority 0
+			return pri;
+		}else{
+			return 0;
+		}
+	}
 }
