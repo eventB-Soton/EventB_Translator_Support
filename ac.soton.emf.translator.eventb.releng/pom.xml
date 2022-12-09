@@ -1,3 +1,16 @@
+<!--
+    Copyright (c) 2020, 2022 University of Southampton.
+   
+    This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License 2.0
+    which accompanies this distribution, and is available at
+    https://www.eclipse.org/legal/epl-2.0/
+   
+    SPDX-License-Identifier: EPL-2.0
+   
+    Contributors:
+       University of Southampton - initial API and implementation
+ -->
 <project>
   <modelVersion>4.0.0</modelVersion>
   <!-- REQUIRED: Group ID is the feature ID -->
@@ -13,12 +26,12 @@
     <!-- Plug-in versions -->
     <tycho-version>2.0.0</tycho-version>
     <maven-resources-plugin-version>3.0.2</maven-resources-plugin-version>
-    <!-- URL for Eclipse Updates repository (4.16) -->
-    <eclipse_updates-repo.url>http://download.eclipse.org/eclipse/updates/4.16/</eclipse_updates-repo.url>
+    <!-- URL for Eclipse Updates repository -->
+    <eclipse_updates-repo.url>http://download.eclipse.org/eclipse/updates/4.22/</eclipse_updates-repo.url>
     <!-- URL for Eclipse Releases repository (2020-06) -->
     <eclipse_releases-repo.url>http://download.eclipse.org/releases/2020-06</eclipse_releases-repo.url>
     <!-- URL for Rodin Platform -->
-    <rodin-repo.url>http://rodin-b-sharp.sourceforge.net/core-updates/3.5</rodin-repo.url>
+    <rodin-repo.url>http://rodin-b-sharp.sourceforge.net/core-updates/3.7</rodin-repo.url>
     <!-- OPTIONAL Additional URLs -->
     <!-- URL for the Soton Update site -->
     <soton-repo.url>http://eventb-soton.github.io/updateSite</soton-repo.url>

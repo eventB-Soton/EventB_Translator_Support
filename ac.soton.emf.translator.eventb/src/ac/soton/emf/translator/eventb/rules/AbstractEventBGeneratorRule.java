@@ -1,12 +1,15 @@
 /*******************************************************************************
- *  Copyright (c) 2016 University of Southampton.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
- *   
- *  Contributors:
- *  University of Southampton - Initial implementation
+ * Copyright (c) 2014, 2022 University of Southampton.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    University of Southampton - initial API and implementation
  *******************************************************************************/
 package ac.soton.emf.translator.eventb.rules;
 
@@ -45,6 +48,10 @@ public abstract class AbstractEventBGeneratorRule extends AbstractRule implement
 	protected static final EReference _extends = ContextPackage.Literals.CONTEXT__EXTENDS;
 	protected static final EAttribute extendsNames = ContextPackage.Literals.CONTEXT__EXTENDS_NAMES;
 	protected static final EReference extensions = CorePackage.Literals.EVENT_BELEMENT__EXTENSIONS;
+	/**
+	 * @since 1.0
+	 */
+	protected static final EReference orderedChildren = CorePackage.Literals.EVENT_BELEMENT__ORDERED_CHILDREN;
 
 	protected ITranslatorStorage storage = TranslatorStorage.getDefault();
 
