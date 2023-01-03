@@ -15,7 +15,7 @@
 <feature
       id="ac.soton.emf.translator.eventb.feature"
       label="%featureName"
-      version="0.2.0.qualifier"
+      version="0.2.0.release"
       provider-name="%featureVendor"
       license-feature="org.rodinp.licence"
       license-feature-version="1.0.0.release">
@@ -33,11 +33,11 @@
    </url>
 
    <requires>
-      <import plugin="ac.soton.emf.translator" version="3.0.0" match="compatible"/>
       <import plugin="org.rodinp.core" version="1.7.0" match="compatible"/>
-      <import plugin="org.eventb.emf.persistence" version="3.5.1" match="compatible"/>
-      <import plugin="org.eventb.emf.core" version="5.0.0" match="compatible"/>
       <import plugin="org.eclipse.emf.workspace" version="1.5.1" match="compatible"/>
+      <import plugin="ac.soton.emf.translator" version="4.0.0" match="compatible"/>
+      <import plugin="org.eventb.emf.persistence" version="4.0.0" match="compatible"/>
+      <import plugin="org.eventb.emf.core" version="6.0.0" match="compatible"/>
    </requires>
 
    <plugin
