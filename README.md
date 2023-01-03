@@ -1,3 +1,5 @@
+[![Latest Status](https://github.com/eventB-Soton/EventB_Translator_Support/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/eventB-Soton/EventB_Translator_Support/actions/workflows/codeql-analysis.yml/badge.svg)
+
 # EventB_Translator_Support
 Adaptation of the EMF translator for Event-B and Rodin
 
