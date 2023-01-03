@@ -24,17 +24,17 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Plug-in versions -->
-    <tycho-version>2.0.0</tycho-version>
-    <maven-resources-plugin-version>3.0.2</maven-resources-plugin-version>
+    <tycho-version>2.7.5</tycho-version>
+    <maven-resources-plugin-version>3.3.0</maven-resources-plugin-version>
     <!-- URL for Eclipse Updates repository -->
     <eclipse_updates-repo.url>http://download.eclipse.org/eclipse/updates/4.22/</eclipse_updates-repo.url>
-    <!-- URL for Eclipse Releases repository (2020-06) -->
-    <eclipse_releases-repo.url>http://download.eclipse.org/releases/2020-06</eclipse_releases-repo.url>
+    <!-- URL for Eclipse Releases repository (2022-06) -->
+    <eclipse_releases-repo.url>http://download.eclipse.org/releases/2022-06</eclipse_releases-repo.url>
     <!-- URL for Rodin Platform -->
     <rodin-repo.url>http://rodin-b-sharp.sourceforge.net/core-updates/3.7</rodin-repo.url>
     <!-- OPTIONAL Additional URLs -->
-    <!-- URL for the Soton Update site -->
-    <soton-repo.url>http://eventb-soton.github.io/updateSite</soton-repo.url>
+    <!-- URL for the Soton Releases Update site -->
+    <soton-repo.url>http://eventb-soton.github.io/updateSite/releases</soton-repo.url>
     <!-- URL for the Rodin Licence Update site -->
     <rodin_licence-repo.url>http://eventb-soton.github.io/media_bin/org.rodinp.licence.updateSite</rodin_licence-repo.url>
   </properties>
